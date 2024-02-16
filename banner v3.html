@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Banner Order Form</title>
+    <style>
+        body {
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	background-color: #282828;
+	margin-right: 0;
+	margin-bottom: 0;
+	color: #fff;
+        }
+        h2 {
+	color: #fff;
+	text-align: center;
+        }
+        form {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            margin: 40px auto;
+            color: #fff;
+        }
+        label, input, select, button {
+	display: block;
+	width: 100%;
+	margin-top: 10px;
+	margin-left: 0;
+	margin-bottom: 10px;
+        }
+        input, select {
+	padding-top: 15px;
+	padding-right: 0px;
+	padding-left: 0px;
+	padding-bottom: 15px;
+	border: 2px solid #777;
+	border-radius: 4px;
+	background: #444;
+	color: #fff;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #previewArea {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            border: 4px dashed #777;
+            position: relative;
+            margin-top: 20px;
+        }
+        .striped-background {
+            background-image: repeating-linear-gradient(
+                45deg,
+                #282828,
+                #282828 10px,
+                #333 10px,
+                #333 20px
+            );
+        }
+        #previewArea img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+            margin: auto;
+        }
+    </style>
+</head>
+</html>
+<img src="cyan graphics logo.png" width="100" height="99" alt=""/>
+<html lang="en">
+<body>
+
+<h2>Banner Order Form</h2>
+
+<form id="bannerOrderForm" enctype="multipart/form-data">
+    <label for="bannerSize">Choose a banner size:</label>
+    <select name="bannerSize" id="bannerSize">
+        <option value="3x6">$55 - 3 x 6 feet</option>
+        <option value="3x8">$75 - 3 x 8 feet</option>
+        <option value="4x8">$90 - 4 x 8 feet</option>
+    </select>
+
+    <label for="customerEmail">Your Email (required):</label>
+  <input type="email" id="customerEmail" name="customerEmail" required>
+    
+    <label for="imageUpload">Upload your image:</label>
+  <input type="file" id="imageUpload" name="imageUpload" required>
+    
+    <button type="button" id="submitOrderBtn">Submit Order</button>
+</form>
+
+<div id="previewArea"></div>
+<script>
+document.getElementById('imageUpload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            adjustPreview(img);
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+document.getElementById('bannerSize').addEventListener('change', function() {
+    const img = document.querySelector('#previewArea img');
+    if (img) {
+        adjustPreview(img);
+    }
+});
+
+function adjustPreview(img) {
+    const bannerSize = document.getElementById('bannerSize').value;
+    let width, height;
+    switch(bannerSize) {
+        case '3x6':
+            width = 600; height = 300;
+            break;
+        case '3x8':
+            width = 800; height = 300;
+            break;
+        case '4x8':
+            width = 800; height = 400;
+            break;
+    }
+    const previewArea = document.getElementById('previewArea');
+    previewArea.style.display = 'flex';
+    previewArea.style.width = `${width}px`;
+    previewArea.style.height = `${height}px`;
+
+    const imgAspectRatio = img.naturalWidth / img.naturalHeight;
+    const bannerAspectRatio = width / height;
+    previewArea.innerHTML = '';
+    previewArea.appendChild(img);
+
+    if (imgAspectRatio != bannerAspectRatio) {
+        previewArea.classList.add('striped-background');
+    } else {
+        previewArea.classList.remove('striped-background');
+    }
+    img.style.maxWidth = imgAspectRatio > bannerAspectRatio ? '100%' : 'auto';
+    img.style.maxHeight = imgAspectRatio < bannerAspectRatio ? '100%' : 'auto';
+    img.style.display = 'block';
+    img.style.margin = 'auto';
+}
+
+document.getElementById('submitOrderBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    const formData = new FormData(document.getElementById('bannerOrderForm'));
+    fetch('http://localhost:3000/submit-order', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data.message); // Log the response from the server
+        const bannerSize = document.getElementById('bannerSize').value;
+        let paymentUrl = '';
+        switch(bannerSize) {
+            case '3x6':
+                paymentUrl = 'https://square.link/u/GtAq2BE0';
+                break;
+            case '3x8':
+                paymentUrl = 'https://square.link/u/aVjWJh5x';
+                break;
+            case '4x8':
+                paymentUrl = 'https://square.link/u/sOlM9Ovz';
+                break;
+        }
+        window.location.href = paymentUrl;
+    })
+    .catch(error => console.error('Error:', error));
+});
+</script>
+
+</body>
+</html>
